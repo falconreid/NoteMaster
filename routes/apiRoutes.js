@@ -38,6 +38,7 @@ module.exports = function (app) {
     fs.writeFile(
       "db.json",
       JSON.stringify(noteArray),
+      // prevents overwriting
       { flags: "a" },
       function (err) {
         if (err) return console.log(err);
@@ -47,7 +48,24 @@ module.exports = function (app) {
     //  receives a new note to save on the request body, adds it to the `db.json` file, and then return the new note to the client in the saved note area section
   });
 
-  app.delete("/api/notes", function (req, res) {
-    // * DELETE `/api/notes/:id` - Should receive a query parameter containing the id of a note to delete. This means you'll need to find a way to give each note a unique `id` when it's saved. In order to delete a note, you'll need to read all notes from the `db.json` file, remove the note with the given `id` property, and then rewrite the notes to the `db.json` file.
+  // :id makes sure that it deletes based on id
+  app.delete("/api/notes/:id", function (req, res) {
+    // load and read the json file
+    noteArray = fs.readFileSync("db.json", "utf-8");
+    // parsing data from file
+    noteArray = JSON.parse(noteArray);
+    // using filter function to delete unwanted note
+    noteArray = noteArray.filter(function (note) {
+      // returns notes that don't match the id
+      return note.id != req.params.id;
+    });
+    // stringify to send back to db.json file
+    noteArray = JSON.stringify(noteArray);
+    // rewrites the file with updated notes
+    fs.writeFile("db.json", noteArray, "utf8", function (err) {
+      if (err) throw err;
+    });
+    // parse into array and send to browser
+    res.send(JSON.parse(noteArray));
   });
 };
