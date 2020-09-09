@@ -9,16 +9,32 @@ module.exports = function (app) {
   // API GET Requests
 
   app.get("/api/notes", function (req, res) {
+    try {
+      noteArray = fs.readFileSync("db.json", "utf-8");
+      noteArray = JSON.parse(noteArray);
+    } catch (err) {
+      console.log(err);
+      console.log("\n error in app.post");
+    }
+
     res.json(noteArray);
   });
   console.log(noteArray);
   // API POST Requests
 
   app.post("/api/notes", function (req, res) {
-    //push the body from the request into array
+    // reads JSON file
+    noteArray = fs.readFileSync("db.json", "utf-8");
+    console.log(noteArray);
+    // parses json file
+    noteArray = JSON.parse(noteArray);
+    //push the body from the request into array, and add id based on length of array
+    req.body.id = noteArray.length;
+
     noteArray.push(req.body);
     // convert response to JSON and push to noteArray (db.json)...
     res.json(noteArray);
+    // write to file
     fs.writeFile(
       "db.json",
       JSON.stringify(noteArray),
